@@ -1,0 +1,27 @@
+services:
+  database:
+    container_name: 'lanars-api-postgres'
+    image: postgres:latest
+    env_file:
+      - ${ENV_FILE:-.development.env}
+    volumes:
+      - lanars-api:/var/lib/postgresql/data
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  redis:
+    container_name: 'lanars-api-redis'
+    image: redis:latest
+    env_file:
+      - ${ENV_FILE:-.development.env}
+    volumes:
+      - lanars-api:/data/redis
+    ports:
+      - '6379:6379'
+
+volumes:
+  lanars-api:
+    name: lanars-api
+    driver: local
