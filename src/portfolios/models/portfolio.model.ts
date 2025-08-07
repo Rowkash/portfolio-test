@@ -7,9 +7,12 @@ import {
   Model,
   BelongsTo,
   ForeignKey,
+  HasMany,
 } from 'sequelize-typescript';
 import { InferAttributes, InferCreationAttributes } from 'sequelize';
+
 import { User } from '@/users/models/user.model';
+import { PortfolioImageModel } from '@/portfolios/models/portfolio-image.model';
 
 export class PortfolioModelDto {
   constructor(partial: Partial<PortfolioModelDto>) {
@@ -40,8 +43,6 @@ export class PortfolioModelDto {
 
   @Exclude()
   updatedAt: Date;
-
-  user?: User;
 }
 
 @Table({ tableName: 'portfolios' })
@@ -70,4 +71,7 @@ export class Portfolio extends Model<
   @ForeignKey(() => User)
   @Column({ type: DataType.INTEGER, field: 'user_id' })
   declare userId: number;
+
+  @HasMany(() => PortfolioImageModel)
+  declare images?: PortfolioImageModel[];
 }
