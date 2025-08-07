@@ -3,7 +3,7 @@ import { WhereOptions } from 'sequelize/types';
 import { InjectModel } from '@nestjs/sequelize';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { User, UserDto } from '@/users/models/user.entity';
+import { User, UserDto } from '@/users/models/user.model';
 
 export type IGetUserFilterOptions = Partial<Pick<UserDto, 'id' | 'userName'>>;
 export type IUserDataCreation = Pick<UserDto, 'userName' | 'password'>;
