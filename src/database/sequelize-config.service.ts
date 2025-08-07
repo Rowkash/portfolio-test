@@ -16,7 +16,6 @@ export class SequelizeConfigService implements SequelizeOptionsFactory {
     return {
       dialect: 'postgres',
       ...options,
-      models: [__dirname + '/../**/*.entity{.ts,.js}'],
       synchronize: false,
     };
   }
