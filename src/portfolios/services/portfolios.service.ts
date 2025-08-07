@@ -1,6 +1,6 @@
 import { WhereOptions } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import {
   Portfolio,
@@ -9,7 +9,7 @@ import {
 import { CreatePortfolioDto } from '@/portfolios/dto/create-portfolio.dto';
 import { PaginationDbHelper } from '@/common/helper/pagination.helper';
 
-export type IGetPortfolioFilterOptions = Partial<
+export type TGetPortfolioFilterOptions = Partial<
   Pick<PortfolioModelDto, 'id' | 'userId'>
 >;
 
@@ -50,12 +50,10 @@ export class PortfoliosService {
   }
 
   async remove(filter: WhereOptions<Portfolio>) {
-    const portfolio = await this.portfolioModel.findOne({ where: filter });
-    if (!portfolio) throw new BadRequestException('Portfolio not found');
     await this.portfolioModel.destroy({ where: filter });
   }
 
-  getFilter(options: IGetPortfolioFilterOptions): WhereOptions<Portfolio> {
+  getFilter(options: TGetPortfolioFilterOptions): WhereOptions<Portfolio> {
     const filter: WhereOptions<Portfolio> = {};
 
     if (options.id != null) filter.id = options.id;

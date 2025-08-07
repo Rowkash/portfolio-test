@@ -1,4 +1,8 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NestMiddleware,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { NextFunction, Response } from 'express';
@@ -31,11 +35,10 @@ export class AuthMiddleware implements NestMiddleware {
       });
 
       request.user = payload;
+      return next();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      request.user = null;
-    } finally {
-      return next();
+      throw new BadRequestException('Invalid access token');
     }
   }
 }

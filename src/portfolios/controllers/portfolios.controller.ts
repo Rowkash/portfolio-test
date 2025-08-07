@@ -12,6 +12,8 @@ import {
   ClassSerializerInterceptor,
   Query,
   HttpCode,
+  ParseIntPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -20,11 +22,11 @@ import {
   ICustomRequest,
   IRequestUser,
 } from '@/common/interfaces/custom-request.interface';
-import { PortfoliosService } from '@/portfolios/portfolios.service';
-import { CreatePortfolioDto } from '@/portfolios/dto/create-portfolio.dto';
 import { PortfolioPageDto } from '@/portfolios/dto/portfolio-page.dto';
 import { PaginationDbHelper } from '@/common/helper/pagination.helper';
 import { PortfolioModelDto } from '@/portfolios/models/portfolio.model';
+import { CreatePortfolioDto } from '@/portfolios/dto/create-portfolio.dto';
+import { PortfoliosService } from '@/portfolios/services/portfolios.service';
 
 @ApiBearerAuth()
 @UseInterceptors(ClassSerializerInterceptor)
@@ -65,21 +67,28 @@ export class PortfoliosController {
   })
   @HttpCode(HttpStatus.OK)
   @Get(':id')
-  findOne(@Param('id') portfolioId: string) {
-    const filter = this.portfoliosService.getFilter({ id: +portfolioId });
-    return this.portfoliosService.findOne(filter);
+  async findOne(@Param('id', ParseIntPipe) portfolioId: number) {
+    const filter = this.portfoliosService.getFilter({ id: portfolioId });
+    const portfolio = await this.portfoliosService.findOne(filter);
+    if (!portfolio) throw new BadRequestException('Portfolio not found');
+    return portfolio;
   }
 
   @ApiOperation({ summary: 'Delete portfolio' })
   @ApiResponse({ status: HttpStatus.NO_CONTENT })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  remove(@Req() { user }: ICustomRequest, @Param('id') portfolioId: string) {
+  async remove(
+    @Req() { user }: ICustomRequest,
+    @Param('id', ParseIntPipe) portfolioId: number,
+  ) {
     const { id: userId } = user as IRequestUser;
     const filter = this.portfoliosService.getFilter({
-      id: +portfolioId,
+      id: portfolioId,
       userId,
     });
-    return this.portfoliosService.remove(filter);
+    const portfolio = await this.portfoliosService.findOne(filter);
+    if (!portfolio) throw new BadRequestException('Portfolio not found');
+    await this.portfoliosService.remove(filter);
   }
 }
