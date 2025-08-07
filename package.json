@@ -19,7 +19,11 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "docker:dev": "docker compose --env-file .development.env up -d",
-    "docker:prod": "docker-compose --env-file .production.env up -d"
+    "docker:prod": "docker-compose --env-file .production.env up -d",
+    "migration:generate": "npx sequelize-cli migration:generate --name",
+    "migration:migrate": "npx sequelize-cli db:migrate",
+    "migration:revert": "npx sequelize-cli db:migrate:undo",
+    "migration:revert:all": "npx sequelize-cli db:migrate:undo:all"
   },
   "dependencies": {
     "@keyv/redis": "^5.1.0",
