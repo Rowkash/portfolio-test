@@ -11,6 +11,7 @@ import { SessionsModule } from '@/sessions/sessions.module';
 import { DatabasesModule } from '@/database/databases.module';
 import { CacheConfigService } from '@/configs/cache-config.service';
 import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
+import { PortfoliosModule } from './portfolios/portfolios.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
     UsersModule,
     AuthModule,
     SessionsModule,
+    PortfoliosModule,
   ],
 })
 export class AppModule {
