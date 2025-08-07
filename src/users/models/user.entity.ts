@@ -1,7 +1,8 @@
 import { Exclude, Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, DataType, Table, Model } from 'sequelize-typescript';
+import { Column, DataType, Table, Model, HasMany } from 'sequelize-typescript';
 import { InferAttributes, InferCreationAttributes } from 'sequelize';
+import { Portfolio } from '@/portfolios/models/portfolio.model';
 
 export class UserDto {
   constructor(partial: Partial<UserDto>) {
@@ -43,4 +44,8 @@ export class User extends Model<
 
   @Column({ type: DataType.STRING, allowNull: false })
   password: string;
+
+  @ApiProperty({ type: [Portfolio], description: 'Portfolios array' })
+  @HasMany(() => Portfolio)
+  portfolios?: Portfolio[];
 }
