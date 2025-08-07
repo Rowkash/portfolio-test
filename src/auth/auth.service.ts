@@ -8,7 +8,7 @@ import { hash, verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
-import { User } from '@/users/models/user.entity';
+import { User } from '@/users/models/user.model';
 import { UsersService } from '@/users/users.service';
 import { AuthLoginDto } from '@/auth/dto/auth-login.dto';
 import { AuthRegisterDto } from '@/auth/dto/auth-register.dto';

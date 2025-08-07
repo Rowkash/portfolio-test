@@ -39,7 +39,12 @@ export class User extends Model<
   declare id?: number;
 
   @ApiProperty({ example: 'Benjamin', description: 'User name' })
-  @Column({ type: DataType.STRING, allowNull: false, unique: true })
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    unique: true,
+    field: 'user_name',
+  })
   userName: string;
 
   @Column({ type: DataType.STRING, allowNull: false })

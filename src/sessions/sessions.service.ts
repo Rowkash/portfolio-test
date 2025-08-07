@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { UserDto } from '@/users/models/user.entity';
+import { UserDto } from '@/users/models/user.model';
 
 const expiresIn = 30 * 24 * 60 * 60 * 1000;
 type TCacheData = {

@@ -9,7 +9,7 @@ import {
   ForeignKey,
 } from 'sequelize-typescript';
 import { InferAttributes, InferCreationAttributes } from 'sequelize';
-import { User } from '@/users/models/user.entity';
+import { User } from '@/users/models/user.model';
 
 export class PortfolioModelDto {
   constructor(partial: Partial<PortfolioModelDto>) {
