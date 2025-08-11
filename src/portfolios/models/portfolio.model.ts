@@ -9,13 +9,17 @@ import {
   ForeignKey,
   HasMany,
 } from 'sequelize-typescript';
-import { InferAttributes, InferCreationAttributes } from 'sequelize';
+import {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 
-import { User } from '@/users/models/user.model';
+import { UserModel } from '@/users/models/user.model';
 import { PortfolioImageModel } from '@/portfolios/models/portfolio-image.model';
 
-export class PortfolioModelDto {
-  constructor(partial: Partial<PortfolioModelDto>) {
+export class Portfolio {
+  constructor(partial: Partial<Portfolio>) {
     Object.assign(this, partial);
   }
 
@@ -45,10 +49,14 @@ export class PortfolioModelDto {
   updatedAt: Date;
 }
 
-@Table({ tableName: 'portfolios' })
-export class Portfolio extends Model<
-  InferAttributes<Portfolio>,
-  InferCreationAttributes<Portfolio>
+@Table({
+  tableName: 'portfolios',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+})
+export class PortfolioModel extends Model<
+  InferAttributes<PortfolioModel>,
+  InferCreationAttributes<PortfolioModel>
 > {
   @Column({
     type: DataType.INTEGER,
@@ -63,15 +71,15 @@ export class Portfolio extends Model<
   @Column({ type: DataType.STRING, allowNull: false })
   declare description: string;
 
-  @ApiProperty({ type: () => User })
-  @BelongsTo(() => User)
-  user?: User;
+  @ApiProperty({ type: () => UserModel })
+  @BelongsTo(() => UserModel)
+  user: CreationOptional<UserModel>;
 
   @ApiProperty({ example: 5, description: 'User ID' })
-  @ForeignKey(() => User)
+  @ForeignKey(() => UserModel)
   @Column({ type: DataType.INTEGER, field: 'user_id' })
   declare userId: number;
 
   @HasMany(() => PortfolioImageModel)
-  declare images?: PortfolioImageModel[];
+  images: CreationOptional<PortfolioImageModel[]>;
 }

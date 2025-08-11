@@ -2,10 +2,10 @@ import { Exclude, Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { Column, DataType, Table, Model, HasMany } from 'sequelize-typescript';
 import { InferAttributes, InferCreationAttributes } from 'sequelize';
-import { Portfolio } from '@/portfolios/models/portfolio.model';
+import { Portfolio, PortfolioModel } from '@/portfolios/models/portfolio.model';
 
-export class UserDto {
-  constructor(partial: Partial<UserDto>) {
+export class User {
+  constructor(partial: Partial<User>) {
     Object.assign(this, partial);
   }
 
@@ -25,10 +25,10 @@ export class UserDto {
   updatedAt: Date;
 }
 
-@Table({ tableName: 'users' })
-export class User extends Model<
-  InferAttributes<User>,
-  InferCreationAttributes<User>
+@Table({ tableName: 'users', createdAt: 'created_at', updatedAt: 'updated_at' })
+export class UserModel extends Model<
+  InferAttributes<UserModel>,
+  InferCreationAttributes<UserModel>
 > {
   @ApiProperty({ example: 1, description: 'Unique ID' })
   @Column({
@@ -51,6 +51,6 @@ export class User extends Model<
   password: string;
 
   @ApiProperty({ type: [Portfolio], description: 'Portfolios array' })
-  @HasMany(() => Portfolio)
-  portfolios?: Portfolio[];
+  @HasMany(() => PortfolioModel)
+  portfolios?: PortfolioModel[];
 }

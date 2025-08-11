@@ -24,7 +24,7 @@ import {
 } from '@/common/interfaces/custom-request.interface';
 import { PortfolioPageDto } from '@/portfolios/dto/portfolio-page.dto';
 import { PaginationDbHelper } from '@/common/helper/pagination.helper';
-import { PortfolioModelDto } from '@/portfolios/models/portfolio.model';
+import { Portfolio } from '@/portfolios/models/portfolio.model';
 import { CreatePortfolioDto } from '@/portfolios/dto/create-portfolio.dto';
 import { PortfoliosService } from '@/portfolios/services/portfolios.service';
 
@@ -63,7 +63,7 @@ export class PortfoliosController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Return portfolio by id',
-    type: PortfolioModelDto,
+    type: Portfolio,
   })
   @HttpCode(HttpStatus.OK)
   @Get(':id')

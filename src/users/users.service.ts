@@ -3,18 +3,18 @@ import { WhereOptions } from 'sequelize/types';
 import { InjectModel } from '@nestjs/sequelize';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { User, UserDto } from '@/users/models/user.model';
+import { User, UserModel } from '@/users/models/user.model';
 
-export type IGetUserFilterOptions = Partial<Pick<UserDto, 'id' | 'userName'>>;
-export type IUserDataCreation = Pick<UserDto, 'userName' | 'password'>;
-export type IUserDataDeleting = Pick<UserDto, 'id' | 'password'>;
+export type IGetUserFilterOptions = Partial<Pick<UserModel, 'id' | 'userName'>>;
+export type IUserDataCreation = Pick<UserModel, 'userName' | 'password'>;
+export type IUserDataDeleting = Pick<UserModel, 'id' | 'password'>;
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User) private userModel: typeof User) {}
+  constructor(@InjectModel(UserModel) private userModel: typeof UserModel) {}
   async create(data: IUserDataCreation) {
-    const user = await this.userModel.create<User>(data);
-    return new UserDto(user.toJSON());
+    const user = await this.userModel.create<UserModel>(data);
+    return new User(user.toJSON());
   }
 
   async remove({ id, password }: IUserDataDeleting) {
@@ -26,10 +26,10 @@ export class UsersService {
     return await this.userModel.destroy({ where: { id } });
   }
 
-  async getOne(filter: WhereOptions<User>) {
+  async getOne(filter: WhereOptions<UserModel>) {
     const user = await this.userModel.findOne({ where: filter });
     if (!user) return null;
-    return new UserDto(user.toJSON());
+    return new User(user.toJSON());
   }
 
   getFilter(options: IGetUserFilterOptions): WhereOptions<User> {
