@@ -14,10 +14,7 @@ import {
   InferCreationAttributes,
 } from 'sequelize';
 
-import {
-  Portfolio,
-  PortfolioModelDto,
-} from '@/portfolios/models/portfolio.model';
+import { Portfolio, PortfolioModel } from '@/portfolios/models/portfolio.model';
 
 export class PortfolioImage {
   constructor(partial: Partial<PortfolioImage>) {
@@ -57,11 +54,15 @@ export class PortfolioImage {
   updatedAt: Date;
 
   @Expose()
-  @ApiProperty({ type: () => PortfolioModelDto })
-  portfolio: PortfolioModelDto;
+  @ApiProperty({ type: () => Portfolio })
+  portfolio: Portfolio;
 }
 
-@Table({ tableName: 'images' })
+@Table({
+  tableName: 'images',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+})
 export class PortfolioImageModel extends Model<
   InferAttributes<PortfolioImageModel>,
   InferCreationAttributes<PortfolioImageModel>
@@ -82,10 +83,10 @@ export class PortfolioImageModel extends Model<
   @Column({ type: DataType.STRING, allowNull: false, field: 'file_name' })
   declare fileName: string;
 
-  @BelongsTo(() => Portfolio)
-  portfolio: CreationOptional<Portfolio>;
+  @BelongsTo(() => PortfolioModel)
+  portfolio: CreationOptional<PortfolioModel>;
 
-  @ForeignKey(() => Portfolio)
+  @ForeignKey(() => PortfolioModel)
   @Column({ type: DataType.INTEGER, field: 'portfolio_id' })
   declare portfolioId: number;
 }

@@ -2,29 +2,26 @@ import { WhereOptions } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
 import { Injectable } from '@nestjs/common';
 
-import {
-  Portfolio,
-  PortfolioModelDto,
-} from '@/portfolios/models/portfolio.model';
+import { Portfolio, PortfolioModel } from '@/portfolios/models/portfolio.model';
 import { CreatePortfolioDto } from '@/portfolios/dto/create-portfolio.dto';
 import { PaginationDbHelper } from '@/common/helper/pagination.helper';
 
 export type TGetPortfolioFilterOptions = Partial<
-  Pick<PortfolioModelDto, 'id' | 'userId'>
+  Pick<PortfolioModel, 'id' | 'userId'>
 >;
 
 @Injectable()
 export class PortfoliosService {
   constructor(
-    @InjectModel(Portfolio) private portfolioModel: typeof Portfolio,
+    @InjectModel(PortfolioModel) private portfolioModel: typeof PortfolioModel,
   ) {}
 
   async create(userId: number, data: CreatePortfolioDto) {
-    const portfolio = await this.portfolioModel.create<Portfolio>({
+    const portfolio = await this.portfolioModel.create<PortfolioModel>({
       ...data,
       userId,
     });
-    return new PortfolioModelDto(portfolio.toJSON());
+    return new Portfolio(portfolio.toJSON());
   }
 
   async getPage(
@@ -38,7 +35,7 @@ export class PortfoliosService {
       offset: pagination.offset,
     });
 
-    const models = rows.map((row) => new PortfolioModelDto(row.toJSON()));
+    const models = rows.map((row) => new Portfolio(row.toJSON()));
 
     return { models, count };
   }
@@ -46,7 +43,7 @@ export class PortfoliosService {
   async findOne(filter: WhereOptions<Portfolio>) {
     const portfolio = await this.portfolioModel.findOne({ where: filter });
     if (!portfolio) return null;
-    return new PortfolioModelDto(portfolio.toJSON());
+    return new Portfolio(portfolio.toJSON());
   }
 
   async remove(filter: WhereOptions<Portfolio>) {

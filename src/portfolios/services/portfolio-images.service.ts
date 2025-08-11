@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { WhereOptions } from 'sequelize';
 
-import {
-  Portfolio,
-  PortfolioModelDto,
-} from '@/portfolios/models/portfolio.model';
+import { Portfolio, PortfolioModel } from '@/portfolios/models/portfolio.model';
 import {
   PortfolioImage,
   PortfolioImageModel,
@@ -37,11 +34,11 @@ export class PortfolioImagesService {
   async findOne(filter: WhereOptions<PortfolioImageModel>) {
     const image = await this.portfolioImageModel.findOne({
       where: filter,
-      include: Portfolio,
+      include: PortfolioModel,
     });
     if (!image) return null;
     const imageData = image.get({ plain: true });
-    const portfolio = new PortfolioModelDto(imageData.portfolio);
+    const portfolio = new Portfolio(imageData.portfolio);
     return new PortfolioImage({
       ...imageData,
       portfolio,
