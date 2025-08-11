@@ -13,5 +13,6 @@ import { PortfolioImagesController } from '@/portfolios/controllers/portfolio-im
   imports: [SequelizeModule.forFeature([PortfolioModel, PortfolioImageModel])],
   controllers: [PortfoliosController, PortfolioImagesController],
   providers: [PortfoliosService, PortfolioImagesService, FilesService],
+  exports: [SequelizeModule],
 })
 export class PortfoliosModule {}

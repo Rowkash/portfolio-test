@@ -17,6 +17,7 @@ export class SequelizeConfigService implements SequelizeOptionsFactory {
       dialect: 'postgres',
       ...options,
       synchronize: false,
+      autoLoadModels: true,
     };
   }
 }

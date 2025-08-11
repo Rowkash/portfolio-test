@@ -42,7 +42,7 @@ export class Portfolio {
   @Expose()
   description: string;
 
-  @Expose()
+  @Expose({ name: 'created_at' })
   createdAt: Date;
 
   @Exclude()
