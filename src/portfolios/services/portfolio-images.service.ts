@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { WhereOptions } from 'sequelize';
+import { Includeable, WhereOptions } from 'sequelize';
 
 import { Portfolio, PortfolioModel } from '@/portfolios/models/portfolio.model';
 import {
@@ -8,6 +8,7 @@ import {
   PortfolioImageModel,
 } from '@/portfolios/models/portfolio-image.model';
 import { plainToInstance } from 'class-transformer';
+import { PaginationDbHelper } from '@/common/helper/pagination.helper';
 
 export type TImageDataCreation = Pick<
   PortfolioImageModel,
@@ -17,6 +18,10 @@ export type TImageDataCreation = Pick<
 export type TGetPortfolioImageFilterOptions = Partial<
   Pick<PortfolioImageModel, 'id' | 'portfolioId'>
 >;
+
+export type TGetPortfolioImageIncludesOptions = {
+  portfolio?: boolean;
+};
 
 @Injectable()
 export class PortfolioImagesService {
@@ -28,7 +33,9 @@ export class PortfolioImagesService {
   async create(data: TImageDataCreation) {
     const image =
       await this.portfolioImageModel.create<PortfolioImageModel>(data);
-    return plainToInstance(PortfolioImage, image.get({ plain: true }));
+    return plainToInstance(PortfolioImage, image.get({ plain: true }), {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findOne(filter: WhereOptions<PortfolioImageModel>) {
@@ -45,6 +52,32 @@ export class PortfolioImagesService {
     });
   }
 
+  async findMany(
+    pagination: PaginationDbHelper,
+    includes?: Includeable,
+    filter?: WhereOptions<PortfolioImageModel>,
+  ) {
+    const { rows, count } = await this.portfolioImageModel.findAndCountAll({
+      where: filter,
+      order: pagination.orderBy,
+      limit: pagination.limit,
+      offset: pagination.offset,
+      include: includes,
+    });
+
+    const models = rows.map((row) => {
+      const data = row.get({ plain: true });
+      if (data.portfolio) {
+        data.portfolio = new Portfolio(data.portfolio);
+      }
+      return plainToInstance(PortfolioImage, data, {
+        excludeExtraneousValues: true,
+      });
+    });
+
+    return { models, count };
+  }
+
   async remove(filter: WhereOptions<PortfolioImageModel>) {
     await this.portfolioImageModel.destroy({ where: filter });
   }
@@ -58,5 +91,15 @@ export class PortfolioImagesService {
     if (options.portfolioId != null) filter.portfolioId = options.portfolioId;
 
     return filter;
+  }
+
+  getIncludes(options: TGetPortfolioImageIncludesOptions): Includeable {
+    const includes: Includeable = {};
+
+    if (options.portfolio !== null) {
+      includes.model = PortfolioModel;
+    }
+
+    return includes;
   }
 }

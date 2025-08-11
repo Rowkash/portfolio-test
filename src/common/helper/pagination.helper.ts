@@ -10,7 +10,7 @@ export class PaginationDbHelper {
   constructor({
     page = 1,
     itemsPerPage = 10,
-    sortBy = 'createdAt',
+    sortBy = 'created_at',
     orderSort = OrderSortEnum.ASC,
   }: Partial<PageDto>) {
     this.page = page;
@@ -28,10 +28,10 @@ export class PaginationDbHelper {
   }
 
   get orderBy(): Order {
-    const allowedFields = ['createdAt', 'userId'];
+    const allowedFields = ['created_at', 'userId'];
     const sortField = allowedFields.includes(this.sortBy)
       ? this.sortBy
-      : 'createdAt';
+      : 'created_at';
     return [[sortField, this.orderSort]];
   }
 }

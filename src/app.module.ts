@@ -15,6 +15,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { FilesModule } from '@/files/files.module';
 import { UsersModule } from '@/users/users.module';
 import { PortfoliosModule } from '@/portfolios/portfolios.module';
+import { FeedModule } from '@/feed/feed.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { PortfoliosModule } from '@/portfolios/portfolios.module';
     SessionsModule,
     PortfoliosModule,
     FilesModule,
+    FeedModule,
   ],
 })
 export class AppModule {

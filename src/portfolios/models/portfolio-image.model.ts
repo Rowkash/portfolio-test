@@ -47,7 +47,7 @@ export class PortfolioImage {
   @Expose()
   fileName: string;
 
-  @Expose()
+  @Expose({ name: 'created_at' })
   createdAt: Date;
 
   @Exclude()
@@ -84,7 +84,7 @@ export class PortfolioImageModel extends Model<
   declare fileName: string;
 
   @BelongsTo(() => PortfolioModel)
-  portfolio: CreationOptional<PortfolioModel>;
+  portfolio: CreationOptional<Portfolio>;
 
   @ForeignKey(() => PortfolioModel)
   @Column({ type: DataType.INTEGER, field: 'portfolio_id' })
