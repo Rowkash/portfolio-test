@@ -1,39 +1,44 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { plainToInstance } from 'class-transformer';
 import { Includeable, WhereOptions } from 'sequelize';
 
-import { Portfolio, PortfolioModel } from '@/portfolios/models/portfolio.model';
-import {
-  PortfolioImage,
-  PortfolioImageModel,
-} from '@/portfolios/models/portfolio-image.model';
-import { plainToInstance } from 'class-transformer';
+import { PortfolioImageModel } from '@/portfolios/models/portfolio-image.model';
+import { FilesService } from '@/files/files.service';
 import { PaginationDbHelper } from '@/common/helper/pagination.helper';
-
-export type TImageDataCreation = Pick<
-  PortfolioImageModel,
-  'name' | 'description' | 'fileName' | 'portfolioId'
->;
-
-export type TGetPortfolioImageFilterOptions = Partial<
-  Pick<PortfolioImageModel, 'id' | 'portfolioId'>
->;
-
-export type TGetPortfolioImageIncludesOptions = {
-  portfolio?: boolean;
-};
+import { PortfolioModel } from '@/portfolios/models/portfolio.model';
+import { PortfoliosService } from '@/portfolios/services/portfolios.service';
+import { PortfolioImagesPageDto } from '@/portfolios/dto/portfolio-images-page.dto';
+import {
+  TGetPortfolioImageFilterOptions,
+  TGetPortfolioImageIncludesOptions,
+  TImageDataCreation,
+} from '@/portfolios/interfaces/portfolio-images.service.interfaces';
 
 @Injectable()
 export class PortfolioImagesService {
   constructor(
     @InjectModel(PortfolioImageModel)
     private portfolioImageModel: typeof PortfolioImageModel,
+    private readonly portfoliosService: PortfoliosService,
+    private readonly filesService: FilesService,
   ) {}
 
-  async create(data: TImageDataCreation) {
-    const image =
-      await this.portfolioImageModel.create<PortfolioImageModel>(data);
-    return plainToInstance(PortfolioImage, image.get({ plain: true }), {
+  async create(data: TImageDataCreation, file: Express.Multer.File) {
+    await this.portfoliosService.findOne({
+      id: data.portfolioId,
+      userId: data.userId,
+    });
+    const fileName = await this.filesService.saveFile(file);
+    const image = await this.portfolioImageModel.create<PortfolioImageModel>({
+      ...data,
+      fileName,
+    });
+    return plainToInstance(PortfolioImageModel, image.get({ plain: true }), {
       excludeExtraneousValues: true,
     });
   }
@@ -43,34 +48,28 @@ export class PortfolioImagesService {
       where: filter,
       include: PortfolioModel,
     });
-    if (!image) return null;
+    if (!image) throw new NotFoundException('Image not found');
     const imageData = image.get({ plain: true });
-    const portfolio = new Portfolio(imageData.portfolio);
-    return new PortfolioImage({
-      ...imageData,
-      portfolio,
+
+    return plainToInstance(PortfolioImageModel, imageData, {
+      excludeExtraneousValues: true,
     });
   }
 
-  async findMany(
-    pagination: PaginationDbHelper,
-    includes?: Includeable,
-    filter?: WhereOptions<PortfolioImageModel>,
-  ) {
+  async findMany(options: PortfolioImagesPageDto) {
+    const pagination = new PaginationDbHelper(options);
+    const include = this.getIncludes({ portfolio: true });
     const { rows, count } = await this.portfolioImageModel.findAndCountAll({
-      where: filter,
       order: pagination.orderBy,
       limit: pagination.limit,
       offset: pagination.offset,
-      include: includes,
+      include,
+      distinct: true,
     });
 
     const models = rows.map((row) => {
       const data = row.get({ plain: true });
-      if (data.portfolio) {
-        data.portfolio = new Portfolio(data.portfolio);
-      }
-      return plainToInstance(PortfolioImage, data, {
+      return plainToInstance(PortfolioImageModel, data, {
         excludeExtraneousValues: true,
       });
     });
@@ -78,8 +77,18 @@ export class PortfolioImagesService {
     return { models, count };
   }
 
-  async remove(filter: WhereOptions<PortfolioImageModel>) {
-    await this.portfolioImageModel.destroy({ where: filter });
+  async remove(imageId: number, portfolioId: number, userId: number) {
+    const imageFilter = this.getFilter({
+      id: imageId,
+      portfolioId,
+    });
+    const image = await this.findOne(imageFilter);
+    if (image.portfolio.userId !== userId)
+      throw new ForbiddenException('Permissions error');
+    await Promise.all([
+      this.filesService.deleteFile(image.fileName),
+      this.portfolioImageModel.destroy({ where: imageFilter }),
+    ]);
   }
 
   getFilter(

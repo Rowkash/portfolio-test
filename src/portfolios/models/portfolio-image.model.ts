@@ -5,68 +5,27 @@ import {
   Model,
   BelongsTo,
   ForeignKey,
+  CreatedAt,
+  UpdatedAt,
 } from 'sequelize-typescript';
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 import {
   CreationOptional,
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
 
-import { Portfolio, PortfolioModel } from '@/portfolios/models/portfolio.model';
+import { PortfolioModel } from '@/portfolios/models/portfolio.model';
 
-export class PortfolioImage {
-  constructor(partial: Partial<PortfolioImage>) {
-    Object.assign(this, partial);
-  }
-
-  @ApiProperty({ example: 1, description: 'Unique ID' })
-  @Expose()
-  id: number;
-
-  @ApiProperty({ example: 1, description: 'Portfolio ID' })
-  @Exclude()
-  portfolioId: number;
-
-  @ApiProperty({ example: 'My Portfolio', description: `Portfolio's name` })
-  @Expose()
-  name: string;
-
-  @ApiProperty({
-    example: 'This is my Portfolio',
-    description: `Portfolio's description`,
-  })
-  @Expose()
-  description: string;
-
-  @ApiProperty({
-    example: '55669cac-0213-4388-9b26-4b275643e653.jpeg',
-    description: `Image file name`,
-  })
-  @Expose()
-  fileName: string;
-
-  @Expose({ name: 'created_at' })
-  createdAt: Date;
-
-  @Exclude()
-  updatedAt: Date;
-
-  @Expose()
-  @ApiProperty({ type: () => Portfolio })
-  portfolio: Portfolio;
-}
-
-@Table({
-  tableName: 'images',
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
-})
+Exclude();
+@Table({ tableName: 'images' })
 export class PortfolioImageModel extends Model<
   InferAttributes<PortfolioImageModel>,
   InferCreationAttributes<PortfolioImageModel>
 > {
+  @ApiProperty({ example: 1, description: 'Unique ID' })
+  @Expose()
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -74,19 +33,45 @@ export class PortfolioImageModel extends Model<
   })
   declare id?: number;
 
+  @ApiProperty({ example: 'My Portfolio', description: `Portfolio's name` })
+  @Expose()
   @Column({ type: DataType.STRING, allowNull: false })
   declare name: string;
 
+  @ApiProperty({
+    example: 'This is my Portfolio image',
+    description: `Portfolio image description`,
+  })
+  @Expose()
   @Column({ type: DataType.STRING, allowNull: false })
   declare description: string;
 
+  @ApiProperty({
+    example: '55669cac-0213-4388-9b26-4b275643e653.jpeg',
+    description: `Image file name`,
+  })
+  @Expose()
   @Column({ type: DataType.STRING, allowNull: false, field: 'file_name' })
   declare fileName: string;
 
+  @ApiProperty({ type: () => PortfolioModel })
+  @Expose()
+  @Type(() => PortfolioModel)
   @BelongsTo(() => PortfolioModel)
-  portfolio: CreationOptional<Portfolio>;
+  portfolio: CreationOptional<PortfolioModel>;
 
+  @ApiProperty({ example: 1, description: 'Portfolio ID' })
   @ForeignKey(() => PortfolioModel)
   @Column({ type: DataType.INTEGER, field: 'portfolio_id' })
   declare portfolioId: number;
+
+  @CreatedAt
+  @Expose()
+  @Column({ field: 'created_at', type: 'timestamp' })
+  declare createdAt: CreationOptional<Date>;
+
+  @UpdatedAt
+  @Exclude()
+  @Column({ field: 'updated_at', type: 'timestamp' })
+  declare updatedAt: CreationOptional<Date>;
 }
