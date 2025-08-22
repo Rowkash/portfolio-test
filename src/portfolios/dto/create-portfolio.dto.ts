@@ -1,11 +1,6 @@
 import { IsDefined, IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateImageDto {
-  name?: string;
-  description?: string;
-}
-
 export class CreatePortfolioDto {
   @ApiProperty({ example: 'My Portfolio', description: `Portfolio's name` })
   @IsDefined()
@@ -20,6 +15,4 @@ export class CreatePortfolioDto {
   @IsNotEmpty()
   @IsString()
   description: string;
-
-  // images?: CreateImageDto;
 }

@@ -1,8 +1,12 @@
 import { Exclude, Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { Column, DataType, Table, Model, HasMany } from 'sequelize-typescript';
-import { InferAttributes, InferCreationAttributes } from 'sequelize';
-import { Portfolio, PortfolioModel } from '@/portfolios/models/portfolio.model';
+import {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
+import { PortfolioModel } from '@/portfolios/models/portfolio.model';
 
 export class User {
   constructor(partial: Partial<User>) {
@@ -50,7 +54,7 @@ export class UserModel extends Model<
   @Column({ type: DataType.STRING, allowNull: false })
   password: string;
 
-  @ApiProperty({ type: [Portfolio], description: 'Portfolios array' })
+  @ApiProperty({ type: [PortfolioModel], description: 'Portfolios array' })
   @HasMany(() => PortfolioModel)
-  portfolios?: PortfolioModel[];
+  portfolios?: CreationOptional<PortfolioModel[]>;
 }
