@@ -7,12 +7,12 @@ import { PortfoliosController } from '@/portfolios/controllers/portfolios.contro
 import { PortfolioImageModel } from '@/portfolios/models/portfolio-image.model';
 import { PortfolioImagesService } from '@/portfolios/services/portfolio-images.service';
 import { PortfolioImagesController } from '@/portfolios/controllers/portfolio-images.controller';
-import { FilesModule } from '@/files/files.module';
+import { MinioModule } from '@/minio/minio.module';
 
 @Module({
   imports: [
     SequelizeModule.forFeature([PortfolioModel, PortfolioImageModel]),
-    FilesModule,
+    MinioModule,
   ],
   controllers: [PortfoliosController, PortfolioImagesController],
   providers: [PortfoliosService, PortfolioImagesService],

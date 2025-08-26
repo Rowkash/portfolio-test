@@ -6,7 +6,6 @@ import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { PortfolioModel } from '@/portfolios/models/portfolio.model';
 import { PaginationDbHelper } from '@/common/helper/pagination.helper';
 import { PortfolioImageModel } from '@/portfolios/models/portfolio-image.model';
-import { FilesService } from '@/files/files.service';
 import { PortfolioPageDto } from '@/portfolios/dto/portfolio-page.dto';
 import {
   IGetOnePortfolioOptions,
@@ -15,12 +14,13 @@ import {
   TGetPortfolioFilterOptions,
   TGetPortfolioIncludesOptions,
 } from '@/portfolios/interfaces/portfolio.service.interfaces';
+import { MinioService } from '@/minio/minio.service';
 
 @Injectable()
 export class PortfoliosService {
   constructor(
     @InjectModel(PortfolioModel) private portfolioModel: typeof PortfolioModel,
-    private readonly filesService: FilesService,
+    private readonly storage: MinioService,
   ) {}
 
   async create(data: IPortfolioDataCreation) {
@@ -71,9 +71,7 @@ export class PortfoliosService {
     });
     if (!portfolio) throw new NotFoundException('Portfolio not found');
 
-    return plainToInstance(PortfolioModel, portfolio.get({ plain: true }), {
-      excludeExtraneousValues: true,
-    });
+    return portfolio.get({ plain: true });
   }
 
   async remove(id: number, userId: number) {
@@ -82,10 +80,9 @@ export class PortfoliosService {
       userId,
       includes: { images: true },
     });
-
     if (portfolio.images && portfolio.images.length > 0) {
       for (const image of portfolio.images) {
-        await this.filesService.deleteFile(image.fileName);
+        await this.storage.deleteFile(image.fileName);
       }
     }
 

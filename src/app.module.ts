@@ -16,13 +16,15 @@ import { FilesModule } from '@/files/files.module';
 import { UsersModule } from '@/users/users.module';
 import { PortfoliosModule } from '@/portfolios/portfolios.module';
 import { FeedModule } from '@/feed/feed.module';
+import { MinioModule } from '@/minio/minio.module';
+import minioConfig from '@/configs/minio.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.production.env', '.development.env'],
-      load: [appConfig, postgresConfig, authConfig],
+      load: [appConfig, postgresConfig, authConfig, minioConfig],
     }),
     CacheModule.registerAsync({
       useClass: CacheConfigService,
@@ -39,6 +41,7 @@ import { FeedModule } from '@/feed/feed.module';
     PortfoliosModule,
     FilesModule,
     FeedModule,
+    MinioModule,
   ],
 })
 export class AppModule {
