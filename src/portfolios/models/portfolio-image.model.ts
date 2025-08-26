@@ -50,9 +50,18 @@ export class PortfolioImageModel extends Model<
     example: '55669cac-0213-4388-9b26-4b275643e653.jpeg',
     description: `Image file name`,
   })
-  @Expose()
+  @Exclude()
   @Column({ type: DataType.STRING, allowNull: false, field: 'file_name' })
   declare fileName: string;
+
+  @ApiProperty({
+    example:
+      'http://localhost:9000/storage/a74378d9-251d-4447-a669-74e8c5f8cc9a',
+    description: `Image url`,
+  })
+  @Expose()
+  @Column({ type: DataType.STRING, allowNull: false })
+  declare url: string;
 
   @ApiProperty({ type: () => PortfolioModel })
   @Expose()

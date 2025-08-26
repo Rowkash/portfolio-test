@@ -21,7 +21,23 @@ services:
     ports:
       - '6379:6379'
 
+  minio:
+    image: bitnami/minio:latest
+    container_name: minio
+    command: server /bitnami/minio/data --console-address ":9001"
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # UI
+    env_file:
+      - ${ENV_FILE:-.development.env}
+    volumes:
+      - minio_data:/bitnami/minio/data
+
 volumes:
   lanars-api:
     name: lanars-api
     driver: local
+  minio_data:
+    name : minio_data
+    driver: local
+

@@ -21,6 +21,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { instanceToPlain } from 'class-transformer';
 
 import { AuthGuard } from '@/auth/guards/auth.guard';
 import {
@@ -68,7 +69,8 @@ export class PortfolioImagesController {
     @Body() dto: CreatePortfolioImageDto,
   ) {
     const { id: userId } = user as IRequestUser;
-    return await this.portfolioImagesService.create(
+
+    const image = await this.portfolioImagesService.create(
       {
         ...dto,
         portfolioId,
@@ -76,6 +78,8 @@ export class PortfolioImagesController {
       },
       file,
     );
+
+    return instanceToPlain(image, { excludeExtraneousValues: true });
   }
 
   @ApiOperation({ summary: 'Delete portfolio image' })

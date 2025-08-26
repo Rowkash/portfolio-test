@@ -8,7 +8,6 @@ import { plainToInstance } from 'class-transformer';
 import { Includeable, WhereOptions } from 'sequelize';
 
 import { PortfolioImageModel } from '@/portfolios/models/portfolio-image.model';
-import { FilesService } from '@/files/files.service';
 import { PaginationDbHelper } from '@/common/helper/pagination.helper';
 import { PortfolioModel } from '@/portfolios/models/portfolio.model';
 import { PortfoliosService } from '@/portfolios/services/portfolios.service';
@@ -18,6 +17,13 @@ import {
   TGetPortfolioImageIncludesOptions,
   TImageDataCreation,
 } from '@/portfolios/interfaces/portfolio-images.service.interfaces';
+import { MinioService } from '@/minio/minio.service';
+import { ConfigService } from '@nestjs/config';
+
+export interface IGetOnePortfolioImageOptions {
+  filter: WhereOptions<PortfolioImageModel>;
+  include?: Includeable;
+}
 
 @Injectable()
 export class PortfolioImagesService {
@@ -25,7 +31,8 @@ export class PortfolioImagesService {
     @InjectModel(PortfolioImageModel)
     private portfolioImageModel: typeof PortfolioImageModel,
     private readonly portfoliosService: PortfoliosService,
-    private readonly filesService: FilesService,
+    private readonly storage: MinioService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(data: TImageDataCreation, file: Express.Multer.File) {
@@ -33,27 +40,31 @@ export class PortfolioImagesService {
       id: data.portfolioId,
       userId: data.userId,
     });
-    const fileName = await this.filesService.saveFile(file);
+    const fileName = await this.storage.uploadFile({ file });
+    const url = this.getPath(fileName);
     const image = await this.portfolioImageModel.create<PortfolioImageModel>({
       ...data,
       fileName,
+      url,
     });
-    return plainToInstance(PortfolioImageModel, image.get({ plain: true }), {
-      excludeExtraneousValues: true,
-    });
+    const plainImage = image.get({ plain: true });
+    const imageUrl = this.getPath(fileName);
+    return plainToInstance(
+      PortfolioImageModel,
+      { ...plainImage, url: imageUrl },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
-  async findOne(filter: WhereOptions<PortfolioImageModel>) {
+  async findOne(options: IGetOnePortfolioImageOptions) {
     const image = await this.portfolioImageModel.findOne({
-      where: filter,
-      include: PortfolioModel,
+      where: options.filter,
+      include: options.include,
     });
     if (!image) throw new NotFoundException('Image not found');
-    const imageData = image.get({ plain: true });
-
-    return plainToInstance(PortfolioImageModel, imageData, {
-      excludeExtraneousValues: true,
-    });
+    return image.get({ plain: true });
   }
 
   async findMany(options: PortfolioImagesPageDto) {
@@ -82,11 +93,14 @@ export class PortfolioImagesService {
       id: imageId,
       portfolioId,
     });
-    const image = await this.findOne(imageFilter);
+    const include = this.getIncludes({ portfolio: true });
+    const image = await this.findOne({ filter: imageFilter, include });
+
     if (image.portfolio.userId !== userId)
       throw new ForbiddenException('Permissions error');
+
     await Promise.all([
-      this.filesService.deleteFile(image.fileName),
+      this.storage.deleteFile(image.fileName),
       this.portfolioImageModel.destroy({ where: imageFilter }),
     ]);
   }
@@ -110,5 +124,11 @@ export class PortfolioImagesService {
     }
 
     return includes;
+  }
+
+  private getPath(key: string) {
+    const path = this.configService.get('MINIO_ENDPOINT');
+    const bucketName = this.configService.get('MINIO_BUCKET_NAME');
+    return `${path}/${bucketName}/${key}`;
   }
 }
