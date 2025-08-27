@@ -3,9 +3,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/sequelize';
 import { plainToInstance } from 'class-transformer';
-import { Includeable, WhereOptions } from 'sequelize';
+import {
+  FindOptions,
+  Includeable,
+  InferAttributes,
+  WhereOptions,
+} from 'sequelize';
 
 import { PortfolioImageModel } from '@/portfolios/models/portfolio-image.model';
 import { PaginationDbHelper } from '@/common/helper/pagination.helper';
@@ -13,17 +19,14 @@ import { PortfolioModel } from '@/portfolios/models/portfolio.model';
 import { PortfoliosService } from '@/portfolios/services/portfolios.service';
 import { PortfolioImagesPageDto } from '@/portfolios/dto/portfolio-images-page.dto';
 import {
+  IGetOnePortfolioImageOptions,
+  IPortfolioDataRemoving,
   TGetPortfolioImageFilterOptions,
   TGetPortfolioImageIncludesOptions,
   TImageDataCreation,
 } from '@/portfolios/interfaces/portfolio-images.service.interfaces';
 import { MinioService } from '@/minio/minio.service';
-import { ConfigService } from '@nestjs/config';
-
-export interface IGetOnePortfolioImageOptions {
-  filter: WhereOptions<PortfolioImageModel>;
-  include?: Includeable;
-}
+import { IMinioConfig } from '@/configs/minio.config';
 
 @Injectable()
 export class PortfolioImagesService {
@@ -47,22 +50,17 @@ export class PortfolioImagesService {
       fileName,
       url,
     });
-    const plainImage = image.get({ plain: true });
-    const imageUrl = this.getPath(fileName);
-    return plainToInstance(
-      PortfolioImageModel,
-      { ...plainImage, url: imageUrl },
-      {
-        excludeExtraneousValues: true,
-      },
-    );
+    return image.toJSON();
   }
 
   async findOne(options: IGetOnePortfolioImageOptions) {
-    const image = await this.portfolioImageModel.findOne({
-      where: options.filter,
-      include: options.include,
-    });
+    const findOneOptions: FindOptions<InferAttributes<PortfolioImageModel>> =
+      {};
+    findOneOptions.where = this.getFilter(options);
+    if (options.include) {
+      findOneOptions.include = this.getIncludes(options.include);
+    }
+    const image = await this.portfolioImageModel.findOne(findOneOptions);
     if (!image) throw new NotFoundException('Image not found');
     return image.get({ plain: true });
   }
@@ -88,20 +86,17 @@ export class PortfolioImagesService {
     return { models, count };
   }
 
-  async remove(imageId: number, portfolioId: number, userId: number) {
-    const imageFilter = this.getFilter({
-      id: imageId,
-      portfolioId,
-    });
-    const include = this.getIncludes({ portfolio: true });
-    const image = await this.findOne({ filter: imageFilter, include });
+  async remove(options: IPortfolioDataRemoving) {
+    const { portfolioId, imageId } = options;
+    const include = { portfolio: true };
+    const image = await this.findOne({ id: imageId, portfolioId, include });
 
-    if (image.portfolio.userId !== userId)
+    if (image.portfolio.userId !== options.userId)
       throw new ForbiddenException('Permissions error');
 
     await Promise.all([
       this.storage.deleteFile(image.fileName),
-      this.portfolioImageModel.destroy({ where: imageFilter }),
+      this.portfolioImageModel.destroy({ where: { id: imageId } }),
     ]);
   }
 
@@ -127,8 +122,14 @@ export class PortfolioImagesService {
   }
 
   private getPath(key: string) {
-    const path = this.configService.get('MINIO_ENDPOINT');
-    const bucketName = this.configService.get('MINIO_BUCKET_NAME');
-    return `${path}/${bucketName}/${key}`;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const minioConfig: IMinioConfig = this.configService.get<IMinioConfig>(
+      'minio',
+      {
+        infer: true,
+      },
+    );
+
+    return `${minioConfig.endpoint}/${minioConfig.bucketName}/${key}`;
   }
 }

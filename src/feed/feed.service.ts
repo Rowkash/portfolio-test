@@ -12,7 +12,7 @@ export class FeedService {
     const { models, count } = await this.portfolioImageService.findMany(query);
     const mappedData = models.map((image: PortfolioImageModel) => {
       return {
-        image: image.fileName,
+        image: image.url,
         description: image.description,
         portfolioName: image.portfolio.name,
         createdAt: image.createdAt as Date,

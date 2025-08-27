@@ -4,12 +4,9 @@ import {
   Column,
   DataType,
   Table,
-  Model,
   BelongsTo,
   ForeignKey,
   HasMany,
-  CreatedAt,
-  UpdatedAt,
 } from 'sequelize-typescript';
 import {
   CreationOptional,
@@ -19,22 +16,14 @@ import {
 
 import { UserModel } from '@/users/models/user.model';
 import { PortfolioImageModel } from '@/portfolios/models/portfolio-image.model';
+import { BaseModel } from '@/common/models/base.model';
 
 @Exclude()
 @Table({ tableName: 'portfolios' })
-export class PortfolioModel extends Model<
+export class PortfolioModel extends BaseModel<
   InferAttributes<PortfolioModel>,
   InferCreationAttributes<PortfolioModel>
 > {
-  @ApiProperty({ example: 1, description: 'Unique ID' })
-  @Expose()
-  @Column({
-    type: DataType.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  })
-  declare id?: number;
-
   @ApiProperty({ example: 'My Portfolio', description: `Portfolio's name` })
   @Expose()
   @Column({ type: DataType.STRING, allowNull: false })
@@ -57,24 +46,6 @@ export class PortfolioModel extends Model<
   @ForeignKey(() => UserModel)
   @Column({ type: DataType.INTEGER, field: 'user_id' })
   declare userId: number;
-
-  @ApiProperty({
-    description: 'Timestamps of model creation',
-    example: '2023-01-13T08:48:08.089Z',
-  })
-  @Expose()
-  @CreatedAt
-  @Column({ field: 'created_at', type: 'timestamp' })
-  declare createdAt: CreationOptional<Date>;
-
-  @ApiProperty({
-    description: 'Timestamps of model updation',
-    example: '2023-01-13T08:48:08.089Z',
-  })
-  @Exclude()
-  @UpdatedAt
-  @Column({ field: 'updated_at', type: 'timestamp' })
-  declare updatedAt: CreationOptional<Date>;
 
   @Expose()
   @Type(() => PortfolioImageModel)

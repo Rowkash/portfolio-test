@@ -8,6 +8,7 @@ export const MINIO_CLIENT = 'MINIO_CLIENT';
 export const MinioProvider = {
   provide: MINIO_CLIENT,
   useFactory: (configService: ConfigService<IMinioConfig, true>) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const minioConfig: IMinioConfig = configService.get<IMinioConfig>('minio', {
       infer: true,
     });
