@@ -13,8 +13,10 @@ import {
   Query,
   ParseIntPipe,
   Patch,
+  SerializeOptions,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
 
 import { AuthGuard } from '@/auth/guards/auth.guard';
 import {
@@ -26,7 +28,6 @@ import { PortfolioModel } from '@/portfolios/models/portfolio.model';
 import { CreatePortfolioDto } from '@/portfolios/dto/create-portfolio.dto';
 import { PortfoliosService } from '@/portfolios/services/portfolios.service';
 import { UpdatePortfolioDto } from '@/portfolios/dto/update-portfolio.dto';
-import { instanceToPlain } from 'class-transformer';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
@@ -41,9 +42,15 @@ export class PortfoliosController {
     description: 'Returns portfolio',
   })
   @Post()
-  create(@Req() { user }: ICustomRequest, @Body() dto: CreatePortfolioDto) {
+  async create(
+    @Req() { user }: ICustomRequest,
+    @Body() dto: CreatePortfolioDto,
+  ) {
     const { id: userId } = user as IRequestUser;
-    return this.portfoliosService.create({ ...dto, userId });
+    const portfolio = await this.portfoliosService.create({ ...dto, userId });
+    return plainToInstance(PortfolioModel, portfolio, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @ApiOperation({ summary: 'Update portfolio' })
@@ -63,9 +70,16 @@ export class PortfoliosController {
     status: HttpStatus.OK,
     description: 'Return portfolios page',
   })
+  @SerializeOptions({ excludeExtraneousValues: true })
   @Get()
-  getPage(@Query() query: PortfolioPageDto) {
-    return this.portfoliosService.getPage(query);
+  async getPage(@Query() query: PortfolioPageDto) {
+    const { models, count } = await this.portfoliosService.getPage(query);
+    return {
+      models: plainToInstance(PortfolioModel, models, {
+        excludeExtraneousValues: true,
+      }),
+      count,
+    };
   }
 
   @ApiOperation({ summary: 'Get portfolio by id' })
@@ -74,13 +88,17 @@ export class PortfoliosController {
     description: 'Return portfolio by id',
     type: PortfolioModel,
   })
+  @SerializeOptions({ excludeExtraneousValues: true })
   @Get(':id')
   async findById(@Param('id', ParseIntPipe) portfolioId: number) {
     const portfolio = await this.portfoliosService.findOne({
       id: portfolioId,
       includes: { images: true },
     });
-    return instanceToPlain(portfolio, { excludeExtraneousValues: true });
+
+    return plainToInstance(PortfolioModel, portfolio, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @ApiOperation({ summary: 'Delete portfolio' })

@@ -21,7 +21,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { instanceToPlain } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 
 import { AuthGuard } from '@/auth/guards/auth.guard';
 import {
@@ -31,6 +31,7 @@ import {
 import { FileImageValidationPipe } from '@/common/pipes/file.validation.pipe';
 import { CreatePortfolioImageDto } from '@/portfolios/dto/create-portfolio-image.dto';
 import { PortfolioImagesService } from '@/portfolios/services/portfolio-images.service';
+import { PortfolioImageModel } from '@/portfolios/models/portfolio-image.model';
 
 @ApiTags('Portfolio Images')
 @ApiBearerAuth()
@@ -79,7 +80,9 @@ export class PortfolioImagesController {
       file,
     );
 
-    return instanceToPlain(image, { excludeExtraneousValues: true });
+    return plainToInstance(PortfolioImageModel, image, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @ApiOperation({ summary: 'Delete portfolio image' })
@@ -91,6 +94,6 @@ export class PortfolioImagesController {
     @Param('imageId', ParseIntPipe) imageId: number,
   ) {
     const { id: userId } = user as IRequestUser;
-    await this.portfolioImagesService.remove(imageId, portfolioId, userId);
+    await this.portfolioImagesService.remove({ imageId, portfolioId, userId });
   }
 }

@@ -2,11 +2,8 @@ import {
   Column,
   DataType,
   Table,
-  Model,
   BelongsTo,
   ForeignKey,
-  CreatedAt,
-  UpdatedAt,
 } from 'sequelize-typescript';
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
@@ -17,22 +14,14 @@ import {
 } from 'sequelize';
 
 import { PortfolioModel } from '@/portfolios/models/portfolio.model';
+import { BaseModel } from '@/common/models/base.model';
 
-Exclude();
+@Exclude()
 @Table({ tableName: 'images' })
-export class PortfolioImageModel extends Model<
+export class PortfolioImageModel extends BaseModel<
   InferAttributes<PortfolioImageModel>,
   InferCreationAttributes<PortfolioImageModel>
 > {
-  @ApiProperty({ example: 1, description: 'Unique ID' })
-  @Expose()
-  @Column({
-    type: DataType.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  })
-  declare id?: number;
-
   @ApiProperty({ example: 'My Portfolio', description: `Portfolio's name` })
   @Expose()
   @Column({ type: DataType.STRING, allowNull: false })
@@ -73,14 +62,4 @@ export class PortfolioImageModel extends Model<
   @ForeignKey(() => PortfolioModel)
   @Column({ type: DataType.INTEGER, field: 'portfolio_id' })
   declare portfolioId: number;
-
-  @CreatedAt
-  @Expose()
-  @Column({ field: 'created_at', type: 'timestamp' })
-  declare createdAt: CreationOptional<Date>;
-
-  @UpdatedAt
-  @Exclude()
-  @Column({ field: 'updated_at', type: 'timestamp' })
-  declare updatedAt: CreationOptional<Date>;
 }

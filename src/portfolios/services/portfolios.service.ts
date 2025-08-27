@@ -1,7 +1,11 @@
-import { Includeable, WhereOptions } from 'sequelize';
+import {
+  FindOptions,
+  Includeable,
+  InferAttributes,
+  WhereOptions,
+} from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { instanceToPlain, plainToInstance } from 'class-transformer';
 
 import { PortfolioModel } from '@/portfolios/models/portfolio.model';
 import { PaginationDbHelper } from '@/common/helper/pagination.helper';
@@ -25,9 +29,7 @@ export class PortfoliosService {
 
   async create(data: IPortfolioDataCreation) {
     const portfolio = await this.portfolioModel.create<PortfolioModel>(data);
-    return plainToInstance(PortfolioModel, portfolio.get({ plain: true }), {
-      excludeExtraneousValues: true,
-    });
+    return portfolio.toJSON();
   }
 
   async update(data: IPortfolioDataUpdate) {
@@ -49,28 +51,19 @@ export class PortfoliosService {
       distinct: true,
     });
 
-    const plainModels = rows.map((row) =>
-      plainToInstance(PortfolioModel, row.get({ plain: true }), {
-        excludeExtraneousValues: true,
-      }),
-    );
-
-    const models = instanceToPlain(plainModels, {
-      excludeExtraneousValues: true,
-    });
+    const models = rows.map((row) => row.get({ plain: true }));
 
     return { models, count };
   }
 
   async findOne(options: IGetOnePortfolioOptions) {
-    const filter = this.getFilter(options);
-    const includes = this.getIncludes(options.includes);
-    const portfolio = await this.portfolioModel.findOne({
-      where: filter,
-      include: includes,
-    });
+    const findOneOptions: FindOptions<InferAttributes<PortfolioModel>> = {};
+    findOneOptions.where = this.getFilter(options);
+    if (options.includes) {
+      findOneOptions.include = this.getIncludes(options.includes);
+    }
+    const portfolio = await this.portfolioModel.findOne(findOneOptions);
     if (!portfolio) throw new NotFoundException('Portfolio not found');
-
     return portfolio.get({ plain: true });
   }
 
@@ -80,6 +73,7 @@ export class PortfoliosService {
       userId,
       includes: { images: true },
     });
+
     if (portfolio.images && portfolio.images.length > 0) {
       for (const image of portfolio.images) {
         await this.storage.deleteFile(image.fileName);

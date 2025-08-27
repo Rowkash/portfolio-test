@@ -12,3 +12,14 @@ export type TGetPortfolioImageFilterOptions = Partial<
 export type TGetPortfolioImageIncludesOptions = {
   portfolio?: boolean;
 };
+
+export interface IGetOnePortfolioImageOptions
+  extends Partial<PortfolioImageModel> {
+  include?: TGetPortfolioImageIncludesOptions;
+}
+
+export interface IPortfolioDataRemoving {
+  imageId: number;
+  userId: number;
+  portfolioId: number;
+}
