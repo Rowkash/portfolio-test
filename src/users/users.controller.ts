@@ -6,8 +6,8 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
+  ParseIntPipe,
   Req,
   UseGuards,
   UseInterceptors,
@@ -20,6 +20,8 @@ import {
 } from '@/common/interfaces/custom-request.interface';
 import { DeleteUserDto } from '@/users/dto/delete-user.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
+import { UserModel } from '@/users/models/user.model';
 
 @ApiBearerAuth()
 @UseInterceptors(ClassSerializerInterceptor)
@@ -29,21 +31,21 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const filter = this.usersService.getFilter({ id: +id });
-    const user = await this.usersService.getOne(filter);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return user;
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.usersService.getOne({ id });
+
+    return plainToInstance(UserModel, user, { excludeExtraneousValues: true });
   }
 
   @ApiOperation({ summary: 'Delete user' })
   @ApiResponse({ status: HttpStatus.NO_CONTENT })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete()
-  remove(@Req() { user }: ICustomRequest, @Body() { password }: DeleteUserDto) {
+  async remove(
+    @Req() { user }: ICustomRequest,
+    @Body() { password }: DeleteUserDto,
+  ) {
     const { id } = user as IRequestUser;
-    return this.usersService.remove({ id, password });
+    await this.usersService.remove({ id, password });
   }
 }
