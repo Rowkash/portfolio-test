@@ -20,7 +20,7 @@ export abstract class BaseModel<
     autoIncrement: true,
     primaryKey: true,
   })
-  declare id?: number;
+  declare id: CreationOptional<number>;
 
   @ApiProperty({
     description: 'Timestamps of model creation',
